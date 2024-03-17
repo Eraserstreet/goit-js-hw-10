@@ -1,43 +1,47 @@
 import iziToast from 'izitoast';
-// Додатковий імпорт стилів
-import 'izitoast/dist/css/iziToast.min.css';
 
-const createButton = document.querySelector('#submit-button');
-const delayInput = document.querySelector('input[name="delay"]');
+const form = document.querySelector('.form');
+const delayInput = form.elements.delay;
+const stateInput = form.elements.state;
 
-createButton.addEventListener('click', createNotification);
+form.addEventListener('submit', sendForm);
 
-function createNotification(e) {
-  e.preventDefault();
-  let stateInput = document.querySelector('input[name="state"]:checked');
-  if (delayInput.value && stateInput.value) {
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (stateInput.value == 'fulfilled') {
-          resolve(`Fulfilled promise in ${delayInput.value}ms`);
-          console.log(promise);
-          iziToast.success({
-            title: 'Success!',
-            message: `Fulfilled promise in ${delayInput.value}ms`,
-            position: 'topRight',
-          });
-        }
-        if (stateInput.value == 'rejected') {
-          reject(`Rejected promise in ${delayInput.value}ms`);
-          console.log(promise);
-          iziToast.error({
-            title: 'Error',
-            message: `Rejected promise in ${delayInput.value}ms`,
-            position: 'topRight',
-          });
-        }
-      }, delayInput.value);
+function sendForm(evt) {
+  evt.preventDefault();
+
+  const delay = Number(delayInput.value.trim());
+  const state = stateInput.value;
+
+  makePromise({ delay, state })
+    .then(delay => {
+      iziToast.success({
+        message: `Fulfilled promise in ${delay}ms`,
+        theme: 'dark',
+        progressBarColor: '#FFFFFF',
+        color: '#59A10D',
+        position: 'topRight',
+      });
+    })
+    .catch(delay => {
+      iziToast.error({
+        message: `Rejected promise in ${delay}ms`,
+        theme: 'dark',
+        progressBarColor: '#FFFFFF',
+        color: '#EF4040',
+        position: 'topRight',
+      });
     });
-    return promise;
-  }
-  return iziToast.warning({
-    title: 'Warning',
-    message: 'You forgot important data!',
-    position: 'topRight',
+  form.reset();
+}
+
+function makePromise({ delay, state }) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (state === 'fulfilled') {
+        resolve(delay);
+      } else {
+        reject(delay);
+      }
+    }, delay);
   });
 }
